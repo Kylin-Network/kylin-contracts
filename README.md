@@ -21,7 +21,7 @@ cargo +nightly contract build
 
 ### usage
 - add new service
-invoke on [polkadot.js](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/contracts)
+invoke on [polkadot.js](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/contracts).
 
 ```bash
 addService (dataId: u64, name: Vec<u8>, desc: Vec<u8>, thumb: Vec<u8>)
