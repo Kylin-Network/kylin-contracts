@@ -8,7 +8,7 @@ It's used as SubModule in [Kylin Node](https://github.com/kylin-network/kylin-no
 
 ## oracle market
 ### setup
-[reference ink! website](https://substrate.dev/substrate-contracts-workshop/#/0/setup)
+[reference ink! website](https://substrate.dev/substrate-contracts-workshop/#/0/setup).
 
 ### build
 ```bash
