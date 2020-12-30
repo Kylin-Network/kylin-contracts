@@ -17,7 +17,7 @@ cargo +nightly contract build
 ```
 
 ### deploy
-[reference ink! website](https://substrate.dev/substrate-contracts-workshop/#/0/deploying-your-contract)
+[reference ink! website](https://substrate.dev/substrate-contracts-workshop/#/0/deploying-your-contract).
 
 ### usage
 - add new service
