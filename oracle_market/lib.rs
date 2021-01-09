@@ -14,15 +14,22 @@ mod oracle_market {
     pub struct OracleMarket {
         // Store a contract owner
         owner: AccountId,
-        // Store accountId's service name
-        service_name_map: StorageHashMap<AccountId, Vec<u8>>,
-        // Store accountId's service dataId
-        service_data_id_map: StorageHashMap<AccountId, u64>,
-        // Store accountId's service desc
-        service_desc_map: StorageHashMap<AccountId, Vec<u8>>,
-        // Store accountId's service desc
-        service_thumb_map: StorageHashMap<AccountId, Vec<u8>>,
+        // Store dataId's service name
+        service_name_map: StorageHashMap<u64, Vec<u8>>,
+        // Store dataId's service owner
+        service_owner_map: StorageHashMap<u64, AccountId>,
+        // Store dataId's service desc
+        service_desc_map: StorageHashMap<u64, Vec<u8>>,
+        // Store dataId's service thumb
+        service_thumb_map: StorageHashMap<u64, Vec<u8>>,
     }
+
+    // struct ServiceInfo {
+    //     data_id: u64,
+    //     name: Vec<u8>,
+    //     desc: Vec<u8>,
+    //     thumb: Vec<u8>,
+    // }
 
     impl OracleMarket {
         /// Constructor that initializes the `bool` value to the given `init_value`.
@@ -30,7 +37,7 @@ mod oracle_market {
         pub fn new() -> Self {
             Self {
                 owner: Self::env().caller(),
-                service_data_id_map: Default::default(),
+                service_owner_map: Default::default(),
                 service_name_map: Default::default(),
                 service_desc_map: Default::default(),
                 service_thumb_map: Default::default(),
@@ -49,37 +56,53 @@ mod oracle_market {
         #[ink(message)]
         pub fn add_service(&mut self, data_id: u64, name: Vec<u8>, desc: Vec<u8>, thumb: Vec<u8>) {
             let account_id = Self::env().caller();
-            self.service_data_id_map.insert(account_id, data_id);
-            self.service_name_map.insert(account_id, name);
-            self.service_desc_map.insert(account_id, desc);
-            self.service_thumb_map.insert(account_id, thumb);
+            self.service_owner_map.insert(data_id, account_id);
+            self.service_name_map.insert(data_id, name);
+            self.service_desc_map.insert(data_id, desc);
+            self.service_thumb_map.insert(data_id, thumb);
         }
 
         /// A message that init a service.
         #[ink(message)]
-        pub fn query_service_data_id(&self, of: AccountId) -> u64 {
-            let data_id = self.service_data_id_map.get(&of).copied().unwrap_or(0);
-            data_id
+        pub fn query_service_owner(&self, data_id: u64) -> AccountId {
+            let account_id = Self::env().caller();
+            let account_id = self.service_owner_map.get(&data_id).copied().unwrap_or(account_id);
+            account_id
         }
 
         /// A message that init a service.
+        // #[ink(message)]
+        // pub fn query_service_by_data_id(&self, data_id: u64) -> ServiceInfo {
+        //     let data_id = self.service_data_id_map.get(&of).copied().unwrap_or(0);
+        //     let name = self.service_name_map.get(&of).unwrap();
+        //     let desc = self.service_desc_map.get(&of).unwrap();
+        //     let thumb = self.service_thumb_map.get(&of).unwrap();
+        //     return ServiceInfo{
+        //         data_id,
+        //         name: name.to_vec(),
+        //         desc: desc.to_vec(),
+        //         thumb: thumb.to_vec(),
+        //     }
+        // }
+
+        /// A message that init a service.
         #[ink(message)]
-        pub fn query_service_name(&self, of: AccountId) -> Vec<u8> {
-            let name = self.service_name_map.get(&of).unwrap();
+        pub fn query_service_name(&self, data_id: u64) -> Vec<u8> {
+            let name = self.service_name_map.get(&data_id).unwrap();
             name.to_vec()
         }
 
         /// A message that init a service.
         #[ink(message)]
-        pub fn query_service_desc(&self, of: AccountId) -> Vec<u8> {
-            let desc = self.service_desc_map.get(&of).unwrap();
+        pub fn query_service_desc(&self, data_id: u64) -> Vec<u8> {
+            let desc = self.service_desc_map.get(&data_id).unwrap();
             desc.to_vec()
         }
 
         /// A message that init a service.
         #[ink(message)]
-        pub fn query_service_thumb(&self, of: AccountId) -> Vec<u8> {
-            let thumb = self.service_thumb_map.get(&of).unwrap();
+        pub fn query_service_thumb(&self, data_id: u64) -> Vec<u8> {
+            let thumb = self.service_thumb_map.get(&data_id).unwrap();
             thumb.to_vec()
         }
 
