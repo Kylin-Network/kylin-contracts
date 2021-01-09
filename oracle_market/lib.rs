@@ -62,7 +62,7 @@ mod oracle_market {
             self.service_thumb_map.insert(data_id, thumb);
         }
 
-        /// A message that init a service.
+        /// query service's owner
         #[ink(message)]
         pub fn query_service_owner(&self, data_id: u64) -> AccountId {
             let account_id = Self::env().caller();
@@ -70,7 +70,7 @@ mod oracle_market {
             account_id
         }
 
-        /// A message that init a service.
+        /// query service's info
         // #[ink(message)]
         // pub fn query_service_by_data_id(&self, data_id: u64) -> ServiceInfo {
         //     let data_id = self.service_data_id_map.get(&of).copied().unwrap_or(0);
@@ -85,21 +85,21 @@ mod oracle_market {
         //     }
         // }
 
-        /// A message that init a service.
+        /// query service's name
         #[ink(message)]
         pub fn query_service_name(&self, data_id: u64) -> Vec<u8> {
             let name = self.service_name_map.get(&data_id).unwrap();
             name.to_vec()
         }
 
-        /// A message that init a service.
+        /// query service's desc
         #[ink(message)]
         pub fn query_service_desc(&self, data_id: u64) -> Vec<u8> {
             let desc = self.service_desc_map.get(&data_id).unwrap();
             desc.to_vec()
         }
 
-        /// A message that init a service.
+        /// query service's thumb
         #[ink(message)]
         pub fn query_service_thumb(&self, data_id: u64) -> Vec<u8> {
             let thumb = self.service_thumb_map.get(&data_id).unwrap();

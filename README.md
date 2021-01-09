@@ -32,12 +32,15 @@ A message that init a service.
 you can query service info, like name, thumb, desc, requestDataId.
 
 ```bash
-queryServiceDataId (of: AccountId): u64
-A message that init a service.
-queryServiceDesc (of: AccountId): Vec<u8>
-A message that init a service.
-queryServiceName (of: AccountId): Vec<u8>
-A message that init a service.
-queryServiceThumb (of: AccountId): Vec<u8>
-A message that init a service.
+/// query service's owner
+query_service_owner(&self, data_id: u64) -> AccountId
+
+/// query service's name
+query_service_name(&self, data_id: u64) -> Vec<u8>
+
+/// query service's desc
+query_service_desc(&self, data_id: u64) -> Vec<u8>
+
+/// query service's thumb
+query_service_thumb(&self, data_id: u64) -> Vec<u8>
 ```
