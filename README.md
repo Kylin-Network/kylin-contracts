@@ -28,7 +28,7 @@ addService (dataId: u64, name: Vec<u8>, desc: Vec<u8>, thumb: Vec<u8>)
 A message that init a service.
 ```
 
-- Query service definition
+- query service definition
 you can query service info, like name, thumb, desc, requestDataId.
 
 ```bash
