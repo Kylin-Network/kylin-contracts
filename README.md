@@ -20,7 +20,7 @@ cargo +nightly contract build
 [reference ink! website](https://substrate.dev/substrate-contracts-workshop/#/0/deploying-your-contract).
 
 ### Usage
-- Add new service
+- add new service
 invoke on [polkadot.js](https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/contracts).
 
 ```bash
