@@ -16,7 +16,7 @@ cd oracle_market
 cargo +nightly contract build
 ```
 
-### Deploy
+### deploy
 [reference ink! website](https://substrate.dev/substrate-contracts-workshop/#/0/deploying-your-contract).
 
 ### usage
