@@ -3,25 +3,23 @@ name = "get_prices"
 version = "0.1.0"
 authors = ['Kylin <https://github.com/kylin-network>']
 homepage = 'https://kylin.network'
-edition = "2020"
+edition = "2018"
 
 [workspace]
 members = [
 ]
 
 [dependencies]
-ink_primitives = { version = "3.0.0-rc1", default-features = false }
-ink_metadata = { version = "3.0.0-rc1", default-features = false, features = ["derive"], optional = true }
-ink_env = { version = "3.0.0-rc1", default-features = false }
-ink_storage = { version = "3.0.0-rc1", default-features = false }
-ink_lang = { version = "3.0.0-rc1", default-features = false }
-ink_prelude = { version = "3.0.0-rc1", default-features = false }
+ink_primitives = { git = "https://github.com/paritytech/ink", package = "ink_primitives", rev="1daf6a8e02a833067ee3eec905464a13a81b1cab", default-features = false }
+ink_metadata = { git = "https://github.com/paritytech/ink", package = "ink_metadata", rev="1daf6a8e02a833067ee3eec905464a13a81b1cab", default-features = false, features = ["derive"], optional = true }
+ink_env = { git = "https://github.com/paritytech/ink", package = "ink_env", rev="1daf6a8e02a833067ee3eec905464a13a81b1cab", default-features = false }
+ink_storage = { git = "https://github.com/paritytech/ink", package = "ink_storage", rev="1daf6a8e02a833067ee3eec905464a13a81b1cab", default-features = false }
+ink_lang = { git = "https://github.com/paritytech/ink", package = "ink_lang", rev="1daf6a8e02a833067ee3eec905464a13a81b1cab", default-features = false }
+ink_prelude = { git = "https://github.com/paritytech/ink", package = "ink_prelude", rev="1daf6a8e02a833067ee3eec905464a13a81b1cab", default-features = false }
 
 
 scale = { package = "parity-scale-codec", version = "1.3", default-features = false, features = ["derive"] }
 scale-info = { version = "0.4", default-features = false, features = ["derive"], optional = true }
-byteorder = { version = "1.3.2", default-features = false }
-twox-hash = { version = "1.5.0", default-features = false }
 
 [lib]
 name = "get_prices"

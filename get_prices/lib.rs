@@ -1,36 +1,88 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use ink_env::Environment;
 use ink_lang as ink;
+use ink_prelude::{vec::Vec};
 
-/// Define hashing functions required for hashing the key to read a Value from runtime storage
-mod hashing {
-    /// Do a XX 128-bit hash and place result in `dest`.
-    pub fn twox_128_into(data: &[u8], dest: &mut [u8; 16]) {
-        use ::core::hash::Hasher;
-        let mut h0 = twox_hash::XxHash::with_seed(0);
-        let mut h1 = twox_hash::XxHash::with_seed(1);
-        h0.write(data);
-        h1.write(data);
-        let r0 = h0.finish();
-        let r1 = h1.finish();
-        use byteorder::{ByteOrder, LittleEndian};
-        LittleEndian::write_u64(&mut dest[0..8], r0);
-        LittleEndian::write_u64(&mut dest[8..16], r1);
-    }
+/// Custom chain extension to read to and write from the runtime.
+#[ink::chain_extension]
+pub trait KylinOracleModule {
+    type ErrorCode = ModuleErrorCode;
 
-    /// Do a XX 128-bit hash and return result.
-    pub fn twox_128(data: &[u8]) -> [u8; 16] {
-        let mut r: [u8; 16] = [0; 16];
-        twox_128_into(data, &mut r);
-        r
+    /// Reads from runtime storage.
+    #[ink(extension = 1)]
+    fn dataId() -> Result<u64, ModuleError>;
+
+    /// Reads from runtime storage.
+    #[ink(extension = 2)]
+    fn requestedOffchainData(dataId: u64) -> Result<Vec<u8>, ModuleError>;
+}
+
+/// The shared error code for the read write chain extension.
+#[derive(
+Debug, Copy, Clone, PartialEq, Eq, scale::Encode, scale::Decode, scale_info::TypeInfo,
+)]
+pub enum ModuleErrorCode {
+    InvalidKey,
+    CannotWriteToKey,
+    CannotReadFromKey,
+}
+
+
+/// Returned by `read_small` in case there were too few bytes available in the buffer.
+///
+/// Provides the number of bytes required to read the storage cell.
+#[derive(
+Debug, Copy, Clone, PartialEq, Eq, scale::Encode, scale::Decode, scale_info::TypeInfo,
+)]
+pub enum ModuleError {
+    ErrorCode(ModuleErrorCode),
+    BufferTooSmall { required_bytes: u32 },
+}
+
+impl From<ModuleErrorCode> for ModuleError {
+    fn from(error_code: ModuleErrorCode) -> Self {
+        Self::ErrorCode(error_code)
     }
 }
 
-#[ink::contract]
-mod get_prices {
+impl From<scale::Error> for ModuleError {
+    fn from(_: scale::Error) -> Self {
+        panic!("encountered unexpected invalid SCALE encoding")
+    }
+}
 
-    use super::hashing;
-    use ink_prelude::{format, vec::Vec};
+impl ink_env::chain_extension::FromStatusCode for ModuleErrorCode {
+    fn from_status_code(status_code: u32) -> Result<(), Self> {
+        match status_code {
+            0 => Ok(()),
+            1 => Err(Self::InvalidKey),
+            2 => Err(Self::CannotWriteToKey),
+            3 => Err(Self::CannotReadFromKey),
+            _ => panic!("encountered unknown status code"),
+        }
+    }
+}
+
+pub enum CustomEnvironment {}
+
+impl Environment for CustomEnvironment {
+    const MAX_EVENT_TOPICS: usize =
+        <ink_env::DefaultEnvironment as Environment>::MAX_EVENT_TOPICS;
+
+    type AccountId = <ink_env::DefaultEnvironment as Environment>::AccountId;
+    type Balance = <ink_env::DefaultEnvironment as Environment>::Balance;
+    type Hash = <ink_env::DefaultEnvironment as Environment>::Hash;
+    type BlockNumber = <ink_env::DefaultEnvironment as Environment>::BlockNumber;
+    type Timestamp = <ink_env::DefaultEnvironment as Environment>::Timestamp;
+    type ChainExtension = KylinOracleModule;
+}
+
+#[ink::contract(env = crate::CustomEnvironment)]
+mod get_prices {
+    use super::{ModuleErrorCode, ModuleError};
+
+    use ink_prelude::{vec::Vec};
 
     /// Defines the storage of your contract.
     /// Add new fields to the below struct in order
@@ -70,6 +122,20 @@ mod get_prices {
             Self::new(Default::default())
         }
 
+        #[ink(message)]
+        pub fn dataId(&self) -> Result<u64, ModuleError> {
+            self.env()
+                .extension()
+                .dataId()
+        }
+
+        #[ink(message)]
+        pub fn requestedOffchainData(&self, dataId: u64) -> Result<Vec<u8>, ModuleError> {
+            self.env()
+                .extension()
+                .requestedOffchainData(dataId)
+        }
+
         /// A message that can be called on instantiated contracts.
         /// This one flips the value of the stored `bool` from `true`
         /// to `false` and vice versa.
@@ -82,68 +148,6 @@ mod get_prices {
         #[ink(message)]
         pub fn get(&self) -> bool {
             self.value
-        }
-
-        /// Attempts to read an instance of the custom struct from runtime storage
-        ///
-        /// Returns `None` if the key does not exist, or it failed to decode the value.
-        #[ink(message)]
-        pub fn read_custom_runtime(&self) -> Option<Vec<u32>> {
-            let mut key = [0u8; 32];
-            // A storage key is constructed as `Twox128(module_prefix) ++ Twox128(storage_prefix)`
-            let module_prefix = hashing::twox_128(&b"PriceFetchModule"[..]);
-            let storage_prefix = hashing::twox_128(&b"Prices"[..]);
-            key[0..16].copy_from_slice(&module_prefix);
-            key[16..32].copy_from_slice(&storage_prefix);
-            //            env::println(&format!("Storage key: {:?}", key));
-
-            // Attempt to read and decode the value directly from the runtime storage
-            let result = self.env().get_runtime_storage::<Vec<u32>>(&key[..]);
-            match result {
-                Some(foo) => {
-                    match foo {
-                        Ok(foo) => {
-                            // Return the successfully decoded instance of `Foo`
-                            Some(foo)
-                        }
-                        Err(err) => {
-                            // Error decoding the value at Foo.
-                            //                            env::println(&format!("Error reading runtime storage: {:?}", err));
-                            None
-                        }
-                    }
-                }
-                None => {
-                    // Key not present
-                    //                    env::println(&format!("No such key: {:?}", key));
-                    None
-                }
-            }
-        }
-    }
-
-    /// Unit tests in Rust are normally defined within such a `#[cfg(test)]`
-    /// module and test functions are marked with a `#[test]` attribute.
-    /// The below code is technically just normal Rust code.
-    #[cfg(test)]
-    mod tests {
-        /// Imports all the definitions from the outer scope so we can use them here.
-        use super::*;
-
-        /// We test if the default constructor does its job.
-        #[test]
-        fn default_works() {
-            let get_prices = GetPrices::default();
-            assert_eq!(get_prices.get(), false);
-        }
-
-        /// We test a simple use case of our contract.
-        #[test]
-        fn it_works() {
-            let mut get_prices = GetPrices::new(false);
-            assert_eq!(get_prices.get(), false);
-            get_prices.flip();
-            assert_eq!(get_prices.get(), true);
         }
     }
 }
